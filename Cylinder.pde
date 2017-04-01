@@ -1,5 +1,14 @@
 import java.util.Map;
+import com.hamoid.*;
 
+VideoExport videoExport;
+
+PFont helveticaSmall;
+PFont helveticaLarge;
+
+color blue = color(127,127,255);
+color white = color(255,255,255);
+color red = color(255,0,0);
 
 StringList _seaIceData;
 int _lineCount = 0;
@@ -7,10 +16,20 @@ StringDict _data = new StringDict();
 
 void setup(){
   size(1000,1000,P3D);
+  helveticaSmall = createFont("helvetica-normal-58c348882d347.ttf", 32);
+  helveticaLarge = createFont("helvetica-normal-58c348882d347.ttf", 64);
+  textFont(helveticaLarge);
+  textAlign(CENTER, CENTER);
+  textMode(SHAPE);
   frameRate(30);
   strokeWeight(4);
   loadData();
+  
+  videoExport = new VideoExport(this);
+  videoExport.setFrameRate(30);
+  videoExport.startMovie();
 }
+
 
 void draw(){ 
   camera(500, 500, 866.0254, 500, 500, 0,0,1,0);
@@ -39,22 +58,48 @@ void draw(){
   
   translate( width/2, 1000, -1000 );
   
-  float angle = (TWO_PI*((frameCount/3.0) % 365.0)/365.0) + PI;
+  float angle = (TWO_PI*(((frameCount-50)/3.0) % 365.0)/365.0) + PI;
   rotateY(-angle);
-  text(frameCount/365+1978,-10,20,0);
+  renderScales();
   stroke(127);
   strokeWeight(7);
-  line(0,0,0,0,-2000,0);
+  //line(0,-190,0,0,-1000,0);
   stroke(0);
   
-  if(frameCount % 30 == 0) println(frameCount);
-  //slow down when frameCount > 1350;
   
-  int maxD = frameCount*10;
+  int maxD = frameCount*30;
   
-  if(frameCount > 1380){
-    maxD = 13800 + (frameCount - 1380)/2;
+  if(frameCount > 460){
+    maxD = 13800 + (frameCount - 460)/2;
   }
+  
+  pushMatrix();
+  
+    textFont(helveticaLarge);
+    rotateY(angle);
+    
+    text("Global Sea Ice Area",0,-1190,0);
+    text("@kevpluck",0,-1120,0);
+    text(maxD/365+1979,-10,-1050,0);
+    
+    fill(blue);
+    text("Arctic", 0,-540,0);
+    
+    fill(white);
+    text("Antarctic", 0, -470,0);
+    
+    textFont(helveticaSmall);
+    
+    text("0",       -740,0,0);
+    text("5M SqKm", -740,-250,0);
+    text("10M SqKm",-740,-500,0);
+    text("15M SqKm",-740,-750,0);
+    text("20M SqKm",-740,-1000,0);
+    text("25M SqKm",-740,-1250,0);
+  
+    text("Sea Ice Concentrations from Nimbus-7 SMMR and DMSP SSM/I-SSMIS Passive Microwave Data (NSIDC-0051),\n Near-Real-Time DMSP SSMIS Daily Polar Gridded Sea Ice Concentrations", 0, 400,0);
+  
+  popMatrix();
   
   for(int d=0; d<=maxD;d++)
   {
@@ -99,8 +144,6 @@ void draw(){
       }
     }
     
-    color blue = color(0,0,255);
-    color red = color(255,0,0);
     
     float lerp = (areaGlobalAnom + 2.11+3.03)/(2.11+3.03 + 2.00+1.49);
     stroke(lerpColor(red, blue, lerp));
@@ -108,16 +151,25 @@ void draw(){
     strokeWeight(5);
     line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
     
+    stroke(255,255,255,16);
+    int distanceFromEnd = maxD - d;
+    if(distanceFromEnd < 25)
+    {
+      for(int c=1;c< 25-distanceFromEnd; c++)
+        line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
+    }
+    
+    
     lerp = (areaArcticAnom + 3.03)/(3.03 + 1.49);
-    stroke(lerpColor(red, blue, lerp));
+    stroke(blue);
       
     strokeWeight(2);
     line(x, -areaArctic*50, z, lastX, -lastArcticArea*50, lastZ);
     
     lerp = (areaAntarcticAnom + 2.11)/(2.11 + 2.00);
-    stroke(lerpColor(red, blue, lerp));
+    stroke(white);
     
-    line(x, -areaAntarctic*50, z, lastX, -lastAntarcticArea*50, lastZ);
+    line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
     lastGX=xGlobal;
     lastGZ=zGlobal;
     lastX = x;
@@ -125,6 +177,12 @@ void draw(){
     lastArcticArea = areaArctic;
     lastAntarcticArea = areaAntarctic;
     lastArea = areaGlobal;
+  }
+  
+  videoExport.saveFrame();
+  if(frameCount > 900){
+    videoExport.endMovie();
+    exit();
   }
 }
 
@@ -145,70 +203,71 @@ void loadData()
 
 }
 
-
-
-void drawCylinder( int sides, float r, float h)
+public void renderScales()
 {
-    float angle = 360 / sides;
-    float halfHeight = h / 2;
-
-    // draw top of the tube
-    beginShape();
-    for (int i = 0; i < sides; i++) {
-        float x = cos( radians( i * angle ) ) * r;
-        float y = sin( radians( i * angle ) ) * r;
-        vertex( x, y, -halfHeight);
-    }
-    endShape(CLOSE);
-
-    // draw bottom of the tube
-    beginShape();
-    for (int i = 0; i < sides; i++) {
-        float x = cos( radians( i * angle ) ) * r;
-        float y = sin( radians( i * angle ) ) * r;
-        vertex( x, y, halfHeight);
-    }
-    endShape(CLOSE);
-    
-    // draw sides
-    beginShape(TRIANGLE_STRIP);
-    for (int i = 0; i < sides + 1; i++) {
-        float x = cos( radians( i * angle ) ) * r;
-        float y = sin( radians( i * angle ) ) * r;
-        vertex( x, y, halfHeight);
-        vertex( x, y, -halfHeight);    
-    }
-    endShape(CLOSE);
-
+  textFont(helveticaLarge);
+  pushMatrix();
+  rotateX(PI/2);
+  //text("January",0,600,0);
+  
+  text("January", 0,600,0);
+  rotateZ(-PI/6);
+  text("February", 0,600,0);
+  rotateZ(-PI/6);
+  text("March", 0,600,0);
+  text("Antarctic Summer",0 ,500,0);
+  rotateZ(-PI/6);
+  text("April", 0,600,0);
+  rotateZ(-PI/6);
+  text("May", 0,600,0);
+  rotateZ(-PI/6);
+  text("June", 0,600,0);
+  rotateZ(-PI/6);
+  text("July", 0,600,0);
+  rotateZ(-PI/6);
+  text("August", 0,600,0);
+  rotateZ(-PI/6);
+  text("September", 0,600,0);
+  text("Arctic Summer", 0,500,0);
+  rotateZ(-PI/6);
+  text("October", 0,600,0);
+  rotateZ(-PI/6);
+  text("November", 0,600,0);
+  rotateZ(-PI/6);
+  text("December", 0,600,0);
+  
+  popMatrix();
 }
 
-public static DateTime GetNonLeapYear(){
-    return new DateTime(2001,1,1,0,0,0,0);
-  }
+public static DateTime GetNonLeapYear()
+{
+  return new DateTime(2001,1,1,0,0,0,0);
+}
   
-  public String GetData(int year, int dayOfYear){
-    String date;
+public String GetData(int year, int dayOfYear)
+{
+  String date;
+  
+  if(year < 1979) return "";
+  if(year == 2017 && dayOfYear >= 82) return "";
+  
+  if(year == 1987 && dayOfYear > 336) return "";   //Missing data in 1987
+  if(year == 1988 && dayOfYear <= 12) return "";   //Missing data in 1988
+  
+  // Years up to 1988 only have data for every second day so if png doesn't exist then try the next day
+  do{
+    DateTime dt = GetNonLeapYear().withDayOfYear(dayOfYear);
+          
+    int month = dt.monthOfYear().get();
+    int day = dt.dayOfMonth().get();
+    date = String.format("%04d-%02d-%02d", year, month, day);
     
-    if(year < 1979) return "";
-    if(year == 2017 && dayOfYear >= 82) return "";
+    if(year > 1988) return _data.get(date);
     
-    if(year == 1987 && dayOfYear > 336) return "";   //Missing data in 1987
-    if(year == 1988 && dayOfYear <= 12) return "";   //Missing data in 1988
-    
-    // Years up to 1988 only have data for every second day so if png doesn't exist then try the next day
-    do{
-      DateTime dt = GetNonLeapYear().withDayOfYear(dayOfYear);
-            
-      int month = dt.monthOfYear().get();
-      int day = dt.dayOfMonth().get();
-      date = String.format("%04d-%02d-%02d", year, month, day);
-      
-      if(year > 1988) return _data.get(date);
-      
-      dayOfYear++;
-      if(dayOfYear > 365) dayOfYear = dayOfYear - 3; // Don't go to the next next, simply skip back a few days - close enough!
-    }
-    while(!_data.hasKey(date));
-    
-    return _data.get(date);
+    dayOfYear++;
+    if(dayOfYear > 365) dayOfYear = dayOfYear - 3; // Don't go to the next next, simply skip back a few days - close enough!
   }
+  while(!_data.hasKey(date));
+  
+  return _data.get(date);
+}
