@@ -1,8 +1,6 @@
 import java.util.Map;
 import com.hamoid.*;
 
-VideoExport videoExport;
-
 PFont helveticaSmall;
 PFont helveticaLarge;
 
@@ -23,15 +21,14 @@ void setup(){
   textMode(SHAPE);
   frameRate(30);
   strokeWeight(4);
+  strokeCap(PROJECT);
   loadData();
   
-  videoExport = new VideoExport(this);
-  videoExport.setFrameRate(30);
-  videoExport.startMovie();
 }
 
 
 void draw(){ 
+  
   camera(500, 500, 866.0254, 500, 500, 0,0,1,0);
   //println(frameCount/365+1978);
   background(0);
@@ -58,13 +55,9 @@ void draw(){
   
   translate( width/2, 1000, -1000 );
   
-  float angle = (TWO_PI*(((frameCount-50)/3.0) % 365.0)/365.0) + PI;
+  float angle = (TWO_PI*(((frameCount+1000)/3.0) % 365.0)/365.0) + PI;
   rotateY(-angle);
   renderScales();
-  stroke(127);
-  strokeWeight(7);
-  //line(0,-190,0,0,-1000,0);
-  stroke(0);
   
   
   int maxD = frameCount*30;
@@ -74,13 +67,16 @@ void draw(){
   }
   
   pushMatrix();
-  
+    stroke(0);
+    strokeWeight(1);
     textFont(helveticaLarge);
     rotateY(angle);
     
     text("Global Sea Ice Area",0,-1190,0);
     text("@kevpluck",0,-1120,0);
-    text(maxD/365+1979,-10,-1050,0);
+    int displayYear = maxD/365+1979;
+    if(displayYear>2017) displayYear=2017;  // TODO, in 2018 increase by 1 :-)
+    text(displayYear,-10,-1050,0);
     
     fill(blue);
     text("Arctic", 0,-540,0);
@@ -113,6 +109,8 @@ void draw(){
     // So that the global line appears over antarctic line make the cylinder radius a smidge wider.
     float xGlobal = (float) Math.sin(r) * 601;
     float zGlobal = (float) Math.cos(r) * 601;
+    float xGlobalComet = (float) Math.sin(r) * 602;
+    float zGlobalComet = (float) Math.cos(r) * 602;
     
     String line = GetData(year, day);
     
@@ -143,33 +141,45 @@ void draw(){
         lastZ = z;
       }
     }
+  
+    int distanceFromEnd = maxD - d;
     
     
     float lerp = (areaGlobalAnom + 2.11+3.03)/(2.11+3.03 + 2.00+1.49);
-    stroke(lerpColor(red, blue, lerp));
+    color lcg=lerpColor(red, blue, lerp);
+    color lcn=color(blue);
+    color lcs=color(white);
+    if(distanceFromEnd<50)
+      {
+        lcg=lerpColor(white, lcg, distanceFromEnd/50.0);
+        lcn=lerpColor(red, lcn, distanceFromEnd/50.0);
+        lcs=lerpColor(red, lcs, distanceFromEnd/50.0);
+        xGlobal=xGlobalComet;
+        zGlobal=zGlobalComet;
+        x=xGlobalComet;
+        z=zGlobalComet;
+      }
+    stroke(lcg);
     
     strokeWeight(5);
     line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
     
-    stroke(255,255,255,16);
-    int distanceFromEnd = maxD - d;
-    if(distanceFromEnd < 25)
-    {
-      for(int c=1;c< 25-distanceFromEnd; c++)
-        line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
-    }
-    
     
     lerp = (areaArcticAnom + 3.03)/(3.03 + 1.49);
-    stroke(blue);
+    stroke(lcn);
       
     strokeWeight(2);
     line(x, -areaArctic*50, z, lastX, -lastArcticArea*50, lastZ);
     
     lerp = (areaAntarcticAnom + 2.11)/(2.11 + 2.00);
-    stroke(white);
+    stroke(lcs);
     
     line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
+      
+    
+    
+    
+    
     lastGX=xGlobal;
     lastGZ=zGlobal;
     lastX = x;
@@ -179,9 +189,9 @@ void draw(){
     lastArea = areaGlobal;
   }
   
-  videoExport.saveFrame();
-  if(frameCount > 900){
-    videoExport.endMovie();
+  save(String.format("frames/frame%05d.png", frameCount));
+  
+  if(frameCount > 1550){
     exit();
   }
 }
