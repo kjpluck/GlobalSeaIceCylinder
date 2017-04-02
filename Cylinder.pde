@@ -1,6 +1,8 @@
 import java.util.Map;
 import com.hamoid.*;
 
+VideoExport videoExport;
+
 PFont helveticaSmall;
 PFont helveticaLarge;
 
@@ -24,6 +26,9 @@ void setup(){
   strokeCap(PROJECT);
   loadData();
   
+  videoExport = new VideoExport(this);
+  videoExport.setFrameRate(30);
+  videoExport.startMovie();
 }
 
 
@@ -33,8 +38,9 @@ void draw(){
   //println(frameCount/365+1978);
   background(0);
   lights();
+  ambientLight(255, 255, 255);
   
-  fill(255, 128, 0);
+  fill(255);
 
   //rotateX( PI );
   
@@ -78,7 +84,7 @@ void draw(){
     if(displayYear>2017) displayYear=2017;  // TODO, in 2018 increase by 1 :-)
     text(displayYear,-10,-1050,0);
     
-    fill(blue);
+    fill(50,50,255);
     text("Arctic", 0,-540,0);
     
     fill(white);
@@ -188,10 +194,11 @@ void draw(){
     lastAntarcticArea = areaAntarctic;
     lastArea = areaGlobal;
   }
+  videoExport.saveFrame();
   
-  save(String.format("frames/frame%05d.png", frameCount));
   
-  if(frameCount > 1550){
+  if(frameCount > 1800){
+    videoExport.endMovie();
     exit();
   }
 }
