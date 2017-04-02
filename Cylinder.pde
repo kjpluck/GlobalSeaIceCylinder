@@ -1,6 +1,8 @@
 import java.util.Map;
 import com.hamoid.*;
 
+VideoExport videoExport;
+
 PFont helveticaSmall;
 PFont helveticaLarge;
 
@@ -24,6 +26,10 @@ void setup(){
   strokeCap(PROJECT);
   loadData();
   
+  videoExport = new VideoExport(this);
+  videoExport.setFrameRate(30);
+  videoExport.startMovie();
+  
 }
 
 
@@ -32,9 +38,11 @@ void draw(){
   camera(500, 500, 866.0254, 500, 500, 0,0,1,0);
   //println(frameCount/365+1978);
   background(0);
-  lights();
   
-  fill(255, 128, 0);
+  lights();
+  pointLight(127, 127, 127, 0, 200, 0);
+  
+  //fill(255, 128, 0);
 
   //rotateX( PI );
   
@@ -55,7 +63,7 @@ void draw(){
   
   translate( width/2, 1000, -1000 );
   
-  float angle = (TWO_PI*(((frameCount+1000)/3.0) % 365.0)/365.0) + PI;
+  float angle = 3.0*TWO_PI/4.0 + 0.8;//(TWO_PI*(((frameCount+1000)/3.0) % 365.0)/365.0) + PI;
   rotateY(-angle);
   renderScales();
   
@@ -78,11 +86,11 @@ void draw(){
     if(displayYear>2017) displayYear=2017;  // TODO, in 2018 increase by 1 :-)
     text(displayYear,-10,-1050,0);
     
-    fill(blue);
-    text("Arctic", 0,-540,0);
+    //fill(blue);
+    //text("Arctic", 0,-540,0);
     
     fill(white);
-    text("Antarctic", 0, -470,0);
+    //text("Antarctic", 0, -470,0);
     
     textFont(helveticaSmall);
     
@@ -165,16 +173,16 @@ void draw(){
     line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
     
     
-    lerp = (areaArcticAnom + 3.03)/(3.03 + 1.49);
-    stroke(lcn);
+    //lerp = (areaArcticAnom + 3.03)/(3.03 + 1.49);
+    //stroke(lcn);
       
-    strokeWeight(2);
-    line(x, -areaArctic*50, z, lastX, -lastArcticArea*50, lastZ);
+    //strokeWeight(2);
+    //line(x, -areaArctic*50, z, lastX, -lastArcticArea*50, lastZ);
     
-    lerp = (areaAntarcticAnom + 2.11)/(2.11 + 2.00);
-    stroke(lcs);
+    //lerp = (areaAntarcticAnom + 2.11)/(2.11 + 2.00);
+    //stroke(lcs);
     
-    line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
+    //line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
       
     
     
@@ -189,9 +197,11 @@ void draw(){
     lastArea = areaGlobal;
   }
   
-  save(String.format("frames/frame%05d.png", frameCount));
+  //save(String.format("frames/frame%05d.png", frameCount));
+  videoExport.saveFrame();
   
   if(frameCount > 1550){
+    videoExport.endMovie();
     exit();
   }
 }
