@@ -69,7 +69,7 @@ void draw(){
   int maxD = frameCount*30;
   
   if(frameCount > 460){
-    maxD = 13800 + (frameCount - 460)/2;
+    maxD = int(13800 + (frameCount - 460)/2.5);
   }
   
   pushMatrix();
@@ -122,7 +122,7 @@ void draw(){
     
     if(line == "") {lastArea = 0; continue;}
     
-    if((year==2017 && day >= 82) || year>=2018) continue;
+    if((year==2017 && day >= 180) || year>=2018) continue;
     
     data = split(line, ',');
     if(data != null && data.length > 3)
@@ -181,10 +181,6 @@ void draw(){
     stroke(lcs);
     
     line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
-      
-    
-    
-    
     
     lastGX=xGlobal;
     lastGZ=zGlobal;
@@ -266,7 +262,7 @@ public String GetData(int year, int dayOfYear)
   String date;
   
   if(year < 1979) return "";
-  if(year == 2017 && dayOfYear >= 82) return "";
+  if(year == 2017 && dayOfYear >= 180) return "";
   
   if(year == 1987 && dayOfYear > 336) return "";   //Missing data in 1987
   if(year == 1988 && dayOfYear <= 12) return "";   //Missing data in 1988
