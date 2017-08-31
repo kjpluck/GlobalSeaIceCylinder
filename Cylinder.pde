@@ -9,10 +9,13 @@ PFont helveticaLarge;
 color blue = color(127,127,255);
 color white = color(255,255,255);
 color red = color(255,0,0);
+color northColour = color(63,150,195);
+color southColour = color(86,32,128);
 
 StringList _seaIceData;
 int _lineCount = 0;
 StringDict _data = new StringDict();
+float VerticalScale = 40;
 
 void setup(){
   size(1000,1000,P3D);
@@ -78,26 +81,26 @@ void draw(){
     textFont(helveticaLarge);
     rotateY(angle);
     
-    text("Global Sea Ice Area",0,-1190,0);
+    text("Global Sea Ice Extent",0,-1190,0);
     text("@kevpluck",0,-1120,0);
     int displayYear = maxD/365+1979;
     if(displayYear>2017) displayYear=2017;  // TODO, in 2018 increase by 1 :-)
     text(displayYear,-10,-1050,0);
     
-    fill(50,50,255);
+    fill(northColour);
     text("Arctic", 0,-540,0);
     
-    fill(white);
+    fill(southColour);
     text("Antarctic", 0, -470,0);
     
+    fill(white);
     textFont(helveticaSmall);
-    
-    text("0",       -740,0,0);
-    text("5M SqKm", -740,-250,0);
-    text("10M SqKm",-740,-500,0);
-    text("15M SqKm",-740,-750,0);
-    text("20M SqKm",-740,-1000,0);
-    text("25M SqKm",-740,-1250,0);
+    for(int i=0; i<=50; i+=5)
+    {
+      String unit = "M SqKm";
+      if(i == 0) unit = " SqKm";
+      text(i + unit,       -740,-(i * VerticalScale),0);
+    }
   
     text("Sea Ice Concentrations from Nimbus-7 SMMR and DMSP SSM/I-SSMIS Passive Microwave Data (NSIDC-0051),\n Near-Real-Time DMSP SSMIS Daily Polar Gridded Sea Ice Concentrations", 0, 400,0);
   
@@ -113,16 +116,18 @@ void draw(){
     float z = (float) Math.cos(r) * 600;
     
     // So that the global line appears over antarctic line make the cylinder radius a smidge wider.
-    float xGlobal = (float) Math.sin(r) * 601;
-    float zGlobal = (float) Math.cos(r) * 601;
-    float xGlobalComet = (float) Math.sin(r) * 602;
-    float zGlobalComet = (float) Math.cos(r) * 602;
+    
+    float lerp = float(year-1978)/float(2017-1978);
+    float xGlobal = (float) Math.sin(r) * (600.0 + lerp * 5);
+    float zGlobal = (float) Math.cos(r) * (600.0 + lerp * 5);
+    float xGlobalComet = (float) Math.sin(r) * 606.0;
+    float zGlobalComet = (float) Math.cos(r) * 606.0;
     
     String line = GetData(year, day);
     
     if(line == "") {lastArea = 0; continue;}
     
-    if((year==2017 && day >= 180) || year>=2018) continue;
+    if((year==2017 && day >= 211) || year>=2018) continue;
     
     data = split(line, ',');
     if(data != null && data.length > 3)
@@ -133,8 +138,8 @@ void draw(){
       areaAntarcticAnom = float(data[9]);
       areaGlobalAnom = areaArcticAnom + areaAntarcticAnom;
       
-      areaArctic = float(data[3]);
-      areaAntarctic = float(data[5]);
+      areaArctic = float(data[2]);
+      areaAntarctic = float(data[4]);
       areaGlobal = areaArctic + areaAntarctic;
       if(lastArea ==0)
       {
@@ -151,15 +156,14 @@ void draw(){
     int distanceFromEnd = maxD - d;
     
     
-    float lerp = (areaGlobalAnom + 2.11+3.03)/(2.11+3.03 + 2.00+1.49);
-    color lcg=lerpColor(red, blue, lerp);
-    color lcn=color(blue);
-    color lcs=color(white);
+    color lcg=lerpColor(color(182,15,61), color(208,98,111), lerp);
+    color lcn=northColour;
+    color lcs=southColour;
     if(distanceFromEnd<50)
       {
         lcg=lerpColor(white, lcg, distanceFromEnd/50.0);
-        lcn=lerpColor(red, lcn, distanceFromEnd/50.0);
-        lcs=lerpColor(red, lcs, distanceFromEnd/50.0);
+        lcn=lerpColor(white, lcn, distanceFromEnd/50.0);
+        lcs=lerpColor(white, lcs, distanceFromEnd/50.0);
         xGlobal=xGlobalComet;
         zGlobal=zGlobalComet;
         x=xGlobalComet;
@@ -168,19 +172,21 @@ void draw(){
     stroke(lcg);
     
     strokeWeight(5);
-    line(xGlobal, -areaGlobal*50, zGlobal, lastGX, -lastArea*50, lastGZ);
+    line(xGlobal, -areaGlobal * VerticalScale, zGlobal, lastGX, -lastArea * VerticalScale, lastGZ);
     
     
     lerp = (areaArcticAnom + 3.03)/(3.03 + 1.49);
     stroke(lcn);
       
     strokeWeight(2);
-    line(x, -areaArctic*50, z, lastX, -lastArcticArea*50, lastZ);
+    
+    if(distanceFromEnd<50) strokeWeight(3);
+    line(x, -areaArctic * VerticalScale, z, lastX, -lastArcticArea * VerticalScale, lastZ);
     
     lerp = (areaAntarcticAnom + 2.11)/(2.11 + 2.00);
     stroke(lcs);
     
-    line(xGlobal, -areaAntarctic*50, zGlobal, lastGX, -lastAntarcticArea*50, lastGZ);
+    line(xGlobal, -areaAntarctic * VerticalScale, zGlobal, lastGX, -lastAntarcticArea * VerticalScale, lastGZ);
     
     lastGX=xGlobal;
     lastGZ=zGlobal;
@@ -262,7 +268,7 @@ public String GetData(int year, int dayOfYear)
   String date;
   
   if(year < 1979) return "";
-  if(year == 2017 && dayOfYear >= 180) return "";
+  if(year == 2017 && dayOfYear >= 211) return "";
   
   if(year == 1987 && dayOfYear > 336) return "";   //Missing data in 1987
   if(year == 1988 && dayOfYear <= 12) return "";   //Missing data in 1988
