@@ -130,7 +130,10 @@ void draw(){
     if(line == "") {lastArea = 0; continue;}
     
     if((year==2017 && day >= DAYOFYEARTODAY) || year>=2018) continue;
+<<<<<<< dde968a28dd7dedaa24a303c398bd9051af3ad01
     
+=======
+>>>>>>> Simplified dao fo year
     
     data = split(line, ',');
     if(data != null && data.length > 3)
