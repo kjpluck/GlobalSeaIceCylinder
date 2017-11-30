@@ -15,7 +15,8 @@ color southColour = color(86,32,128);
 StringList _seaIceData;
 int _lineCount = 0;
 StringDict _data = new StringDict();
-float VerticalScale = 40;
+int DAYOFYEARTODAY = 333;
+float VerticalScale = 50;
 
 void setup(){
   size(1000,1000,P3D);
@@ -64,7 +65,8 @@ void draw(){
   
   translate( width/2, 1000, -1000 );
   
-  float angle = (TWO_PI*(((frameCount+1000)/3.0) % 365.0)/365.0) + PI;
+  float angle = (TWO_PI*(((frameCount+950)/2.9) % 365.0)/365.0) + PI;
+  //angle = angle * 0.95;
   rotateY(-angle);
   renderScales();
   
@@ -81,7 +83,7 @@ void draw(){
     textFont(helveticaLarge);
     rotateY(angle);
     
-    text("Global Sea Ice Extent",0,-1190,0);
+    text("Global Sea Ice Area",0,-1190,0);
     text("@kevpluck",0,-1120,0);
     int displayYear = maxD/365+1979;
     if(displayYear>2017) displayYear=2017;  // TODO, in 2018 increase by 1 :-)
@@ -95,7 +97,7 @@ void draw(){
     
     fill(white);
     textFont(helveticaSmall);
-    for(int i=0; i<=50; i+=5)
+    for(int i=0; i<=25; i+=5)
     {
       String unit = "M SqKm";
       if(i == 0) unit = " SqKm";
@@ -127,7 +129,8 @@ void draw(){
     
     if(line == "") {lastArea = 0; continue;}
     
-    if((year==2017 && day >= 211) || year>=2018) continue;
+    if((year==2017 && day >= DAYOFYEARTODAY) || year>=2018) continue;
+    
     
     data = split(line, ',');
     if(data != null && data.length > 3)
@@ -138,8 +141,8 @@ void draw(){
       areaAntarcticAnom = float(data[9]);
       areaGlobalAnom = areaArcticAnom + areaAntarcticAnom;
       
-      areaArctic = float(data[2]);
-      areaAntarctic = float(data[4]);
+      areaArctic = float(data[3]);
+      areaAntarctic = float(data[5]);
       areaGlobal = areaArctic + areaAntarctic;
       if(lastArea ==0)
       {
@@ -268,7 +271,7 @@ public String GetData(int year, int dayOfYear)
   String date;
   
   if(year < 1979) return "";
-  if(year == 2017 && dayOfYear >= 211) return "";
+  if(year == 2017 && dayOfYear >= DAYOFYEARTODAY) return "";
   
   if(year == 1987 && dayOfYear > 336) return "";   //Missing data in 1987
   if(year == 1988 && dayOfYear <= 12) return "";   //Missing data in 1988
