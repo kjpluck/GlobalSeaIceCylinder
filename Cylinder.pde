@@ -15,7 +15,7 @@ color southColour = color(86,32,128);
 StringList _seaIceData;
 int _lineCount = 0;
 StringDict _data = new StringDict();
-int DAYOFYEARTODAY = 333;
+int DAYOFYEARTODAY = 364;
 float VerticalScale = 50;
 
 void setup(){
@@ -65,7 +65,7 @@ void draw(){
   
   translate( width/2, 1000, -1000 );
   
-  float angle = (TWO_PI*(((frameCount+950)/2.9) % 365.0)/365.0) + PI;
+  float angle = (TWO_PI*(((frameCount+900)/2.8) % 365.0)/365.0) + PI;
   //angle = angle * 0.95;
   rotateY(-angle);
   renderScales();
@@ -130,10 +130,6 @@ void draw(){
     if(line == "") {lastArea = 0; continue;}
     
     if((year==2017 && day >= DAYOFYEARTODAY) || year>=2018) continue;
-<<<<<<< dde968a28dd7dedaa24a303c398bd9051af3ad01
-    
-=======
->>>>>>> Simplified dao fo year
     
     data = split(line, ',');
     if(data != null && data.length > 3)
